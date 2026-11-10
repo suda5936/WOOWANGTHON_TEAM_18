@@ -2,7 +2,7 @@
 
 - **SRS**: none yet (FR table is empty). 현식 approved building without an FR on 2026-11-10; the work serves the deployer flow in `docs/design/deploy-workflow.md`.
 - **Owner**: 현식 (suda5936)
-- **Integration branch**: `claude/trusting-einstein-lt76nr` on the fork `suda5936/WOOWANGTHON_TEAM_18`. Both sessions start here and every feature merges back here.
+- **Integration branch**: `dev/deploy-prototype` on the fork `suda5936/WOOWANGTHON_TEAM_18`. Both sessions start here and every feature merges back here.
 - **Feature branches**: one `feat/<slug>` per todo slice, cut from the integration branch, merged back by a fork PR that 현식 reviews (§3 rule 5)
 - **Session files**: [Session A todo](20261110-deploy-pipeline-todo.md) · [Session B todo](20261110-ai-agent-todo.md)
 
@@ -33,15 +33,15 @@ Shared files (both may touch, **own lines only, smallest diff**): `BE/src/app.mo
 3. **No faked results** (`CLAUDE.md` §1.2, conventions F-1). A stand-in that the running app can return is a `MOCK(<id>)` with an `ai-scope.md` row in the same commit. Fakes that live only in tests need no marker. Never report a check you did not run as passed; say "not run" and why.
 4. **No secrets in git or chat.** Keys come from the session environment. If you need one, say which host and why, then carry on with the parts that do not need it.
 5. **One feature = one branch = one PR into the integration branch.** Never commit to the integration branch directly. For each todo slice:
-   1. `git fetch origin claude/trusting-einstein-lt76nr` and cut `feat/<slug>` (the name is in your todo) from `origin/claude/trusting-einstein-lt76nr`. If your previous feature PR is not merged yet and the new slice needs its code, cut from that feature branch instead and say so in the PR body.
+   1. `git fetch origin dev/deploy-prototype` and cut `feat/<slug>` (the name is in your todo) from `origin/dev/deploy-prototype`. If your previous feature PR is not merged yet and the new slice needs its code, cut from that feature branch instead and say so in the PR body.
    2. Build it with its tests, update your task pair in the same branch, `git push -u origin feat/<slug>`.
-   3. Open a PR **inside the fork** (`suda5936/WOOWANGTHON_TEAM_18`, base `claude/trusting-einstein-lt76nr`, head `feat/<slug>`) with the repo PR template, in Korean. 현식 has authorized these fork PRs; never open one against the team repo.
+   3. Open a PR **inside the fork** (`suda5936/WOOWANGTHON_TEAM_18`, base `dev/deploy-prototype`, head `feat/<slug>`) with the repo PR template, in Korean. 현식 has authorized these fork PRs; never open one against the team repo.
    4. Post a short Korean status (done, test output, open questions, PR link, next) and start the next slice in the same turn. Do not wait for the merge.
    5. 현식 merges with a merge commit (not squash, so stacked branches stay clean). When a review asks for changes, fix them on that feature branch first, then return to the current slice. If the integration branch moved under an open PR, merge it into the feature branch and re-run the checks.
 6. **Docs move with code.** API shape → `docs/design/api.md` first. A model, external API, library or tool added → `docs/ai-scope.md` in the same commit. A design detail that turned out different → fix the design doc you own, or log it for the other owner.
 7. **Language**: reply to 현식 in Korean. Code, comments' identifiers, task files in English; design docs, ADRs, `ai-scope.md`, PR text in Korean. Follow the comment style already in `BE/src` (Korean "why" comments).
 8. **PRs go to the fork only.** The sessions cannot reach the team repo; 현식 opens the PRs into the team repo himself. In every fork PR's notes say "mutation testing not run: no tool chosen" (conventions §6).
-9. **When the handoff PR merges** into the team repo, 현식 brings the integration branch up to date and says so. Then merge `origin/claude/trusting-einstein-lt76nr` into your open feature branch, read what changed under `docs/design` and `docs/adr`, and adjust.
+9. **When the handoff PR merges** into the team repo, 현식 brings the integration branch up to date and says so. Then merge `origin/dev/deploy-prototype` into your open feature branch, read what changed under `docs/design` and `docs/adr`, and adjust.
 
 ## 4. Contract between the two tracks (v0, frozen)
 
@@ -197,9 +197,9 @@ Start two new sessions on the fork `suda5936/WOOWANGTHON_TEAM_18` and paste one 
 ```text
 너는 「세션 A — 빌드 · 배포 워크플로우」다. 나는 현식(suda5936)이고 2026 AI 우왕톤 18팀에서 W3 뒤(배포 입력 JSON 접수 → GoCD 파이프라인 배포 → W7 완료)와 AI 에이전트를 맡았다. 포크 브랜치 docs/deploy-handoff-blue-green을 팀 레포에 머지 신청해 둔 상태이고, 머지됐다고 가정하고 개발한다. 1차 프로토타입 마감은 2026-11-12 07:00 KST다. 세션 두 개를 병렬로 쉬지 않고 돌리고, 나는 계속 검토 · 승인 · 제안만 한다. 너는 빌드 · 배포 워크플로우를, 다른 세션은 AI 에이전트를 만든다. 이 세션은 끝까지 유지하면서 기능을 하나씩 계속 개발한다.
 
-통합 브랜치는 claude/trusting-einstein-lt76nr이다. 여기에 직접 커밋하지 않는다. 기능(todo 슬라이스)마다 통합 브랜치에서 feat/<slug> 브랜치를 새로 파서 작업하고, 포크(suda5936/WOOWANGTHON_TEAM_18) 안에서 통합 브랜치로 PR을 연다. feat/* 브랜치에 push하는 것과 포크 안 PR을 여는 것을 명시적으로 허가한다 (세션에 지정된 다른 브랜치가 있어도 feat/*를 쓴다. 팀 레포로는 PR을 열지 않는다). 머지는 내가 한다.
+통합 브랜치는 dev/deploy-prototype이다. 여기에 직접 커밋하지 않는다. 기능(todo 슬라이스)마다 통합 브랜치에서 feat/<slug> 브랜치를 새로 파서 작업하고, 포크(suda5936/WOOWANGTHON_TEAM_18) 안에서 통합 브랜치로 PR을 연다. feat/* 브랜치에 push하는 것과 포크 안 PR을 여는 것을 명시적으로 허가한다 (세션에 지정된 다른 브랜치가 있어도 feat/*를 쓴다. 팀 레포로는 PR을 열지 않는다). 머지는 내가 한다.
 
-1. git fetch origin claude/trusting-einstein-lt76nr && git checkout claude/trusting-einstein-lt76nr 로 통합 브랜치를 받는다.
+1. git fetch origin dev/deploy-prototype && git checkout dev/deploy-prototype 로 통합 브랜치를 받는다.
 2. CLAUDE.md, CONTRIBUTING.md, tasks/active/20261110-deploy-prototype-todo.md(공유 계획), tasks/active/20261110-deploy-pipeline-todo.md(네 할 일)를 Read 도구로 끝까지 읽는다.
 3. 네 todo의 순서대로 바로 시작한다. 공유 계획 §3 규칙 5의 순서(브랜치 → 구현 · 테스트 → push → 포크 PR → 한국어 보고 → 다음 기능)를 기능마다 반복한다. 머지를 기다리지 말고, 기본값이 있는 질문으로 멈추지 말고 lessons 파일에 적고 계속한다.
 ```
@@ -209,9 +209,9 @@ Start two new sessions on the fork `suda5936/WOOWANGTHON_TEAM_18` and paste one 
 ```text
 너는 「세션 B — AI 에이전트」다. 나는 현식(suda5936)이고 2026 AI 우왕톤 18팀에서 W3 뒤(배포 입력 JSON 접수 → GoCD 파이프라인 배포 → W7 완료)와 AI 에이전트를 맡았다. 포크 브랜치 docs/deploy-handoff-blue-green을 팀 레포에 머지 신청해 둔 상태이고, 머지됐다고 가정하고 개발한다. 1차 프로토타입 마감은 2026-11-12 07:00 KST다. 세션 두 개를 병렬로 쉬지 않고 돌리고, 나는 계속 검토 · 승인 · 제안만 한다. 너는 AI 에이전트를, 다른 세션은 빌드 · 배포 워크플로우를 만든다. 이 세션은 끝까지 유지하면서 기능을 하나씩 계속 개발한다.
 
-통합 브랜치는 claude/trusting-einstein-lt76nr이다. 여기에 직접 커밋하지 않는다. 기능(todo 슬라이스)마다 통합 브랜치에서 feat/<slug> 브랜치를 새로 파서 작업하고, 포크(suda5936/WOOWANGTHON_TEAM_18) 안에서 통합 브랜치로 PR을 연다. feat/* 브랜치에 push하는 것과 포크 안 PR을 여는 것을 명시적으로 허가한다 (세션에 지정된 다른 브랜치가 있어도 feat/*를 쓴다. 팀 레포로는 PR을 열지 않는다). 머지는 내가 한다.
+통합 브랜치는 dev/deploy-prototype이다. 여기에 직접 커밋하지 않는다. 기능(todo 슬라이스)마다 통합 브랜치에서 feat/<slug> 브랜치를 새로 파서 작업하고, 포크(suda5936/WOOWANGTHON_TEAM_18) 안에서 통합 브랜치로 PR을 연다. feat/* 브랜치에 push하는 것과 포크 안 PR을 여는 것을 명시적으로 허가한다 (세션에 지정된 다른 브랜치가 있어도 feat/*를 쓴다. 팀 레포로는 PR을 열지 않는다). 머지는 내가 한다.
 
-1. git fetch origin claude/trusting-einstein-lt76nr && git checkout claude/trusting-einstein-lt76nr 로 통합 브랜치를 받는다.
+1. git fetch origin dev/deploy-prototype && git checkout dev/deploy-prototype 로 통합 브랜치를 받는다.
 2. CLAUDE.md, CONTRIBUTING.md, tasks/active/20261110-deploy-prototype-todo.md(공유 계획), tasks/active/20261110-ai-agent-todo.md(네 할 일)를 Read 도구로 끝까지 읽는다.
 3. 네 todo의 순서대로 바로 시작한다. 공유 계획 §3 규칙 5의 순서(브랜치 → 구현 · 테스트 → push → 포크 PR → 한국어 보고 → 다음 기능)를 기능마다 반복한다. 머지를 기다리지 말고, 기본값이 있는 질문으로 멈추지 말고 lessons 파일에 적고 계속한다.
 ```

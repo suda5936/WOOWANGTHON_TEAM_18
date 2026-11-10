@@ -2,7 +2,7 @@
 
 - **SRS**: none yet (FR table empty; 현식 approved 2026-11-10)
 - **Owner**: 현식 (suda5936), built by Claude Code session B
-- **Branch**: one `feat/<slug>` per slice below, cut from and merged back into the integration branch `claude/trusting-einstein-lt76nr` by a fork PR (shared plan §3 rule 5)
+- **Branch**: one `feat/<slug>` per slice below, cut from and merged back into the integration branch `dev/deploy-prototype` by a fork PR (shared plan §3 rule 5)
 - **Shared plan (read first)**: [20261110-deploy-prototype-todo.md](20261110-deploy-prototype-todo.md) — situation, rules, contract §4, checkpoints §5, defaults §6
 
 ## Plan
