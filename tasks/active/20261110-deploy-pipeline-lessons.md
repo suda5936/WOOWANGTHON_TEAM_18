@@ -9,6 +9,7 @@
 ### Open questions for 현식
 
 - A0-Q1: a Switch-stage failure — default: reported as a platform problem, not ticketed (`TicketStage` excludes `switch`), because the target slot already passed Verify and the agent has nothing to fix there. Say if it should be ticketed.
+  - Answered 2026-11-10 by 현식: keep the default, no ticket for Switch failures.
 
 ### Needs from the other session
 
