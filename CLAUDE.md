@@ -81,7 +81,19 @@ BE (run in `BE/`, Node 22 (22.22.3+), 24 (24.15+) or 26+ — not 23 or 25; the r
 | Verify (lint → test → build, stops at the first failure; `build` runs `tsc --noEmit` over the tests too, so typecheck is included; run before every commit) | `pnpm verify` |
 | Container image (run from the repo root; local dev only, production is EC2) | `docker build -t be BE` |
 
-AI and the mutation-test command: TBD — added with each stack.
+AI (run in `AI/`, Python 3.13 and [uv](https://docs.astral.sh/uv/) 0.11 — uv downloads the Python in `AI/.python-version` if it is missing):
+
+| Task | Command |
+| --- | --- |
+| Install (CI-exact) | `uv sync --locked` |
+| Dev server (reload, port 8000) | `uv run uvicorn app.main:app --reload` |
+| Lint / format check | `uv run ruff check .` / `uv run ruff format --check .` |
+| Typecheck (mypy strict) | `uv run mypy` |
+| Test ([pytest](https://pytest.org)) | `uv run pytest` |
+| Verify (lint → format check → typecheck → test, stops at the first failure; run before every commit) | `./verify.sh` |
+| Container image (run from the repo root; production is the EC2 next to BE) | `docker build -t ai AI` |
+
+Mutation-test command: TBD — added with the tool.
 
 ## Pitfalls
 

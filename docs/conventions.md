@@ -85,7 +85,13 @@ Decided for BE:
 - Unit tests sit next to the code as `BE/src/**/*.spec.ts` (Nest's naming, what `nest g` generates). Tests that boot the app go in `BE/test/*.e2e.spec.ts` (Vitest's default pattern) and start it with `BE/test/start-app.ts`, which calls `setupApp` the way `main.ts` does, so they run with the real prefix, CORS, error filter and auth guard.
 - `BE/vitest.config.ts` only sets the required env (`SUPABASE_URL`, a fake origin) because `ConfigModule` validates env when it is imported. Tests never reach the network: the auth tests stub `fetch` to serve a key set generated in the test.
 
-Fill in once the stack is decided (AI, and the mutation tool for all):
+Decided for AI:
+
+- Python 3.13 (`AI/.python-version`, `requires-python` in `AI/pyproject.toml`), [uv](https://docs.astral.sh/uv/) for the environment and the lockfile (`AI/uv.lock`; the uv version is pinned in `AI/Dockerfile` and `.github/workflows/ai.yml`).
+- Lint and format: ruff. Typecheck: mypy `strict` over `app/` and `tests/`. Test library: pytest with FastAPI's `TestClient`; `./verify.sh` in `AI/` runs all four in that order.
+- Tests sit in `AI/tests/test_*.py`, named after the module they cover. Tests never reach the network or a real model: the model and the platform gateway are replaced by fakes in the test files.
+
+Fill in once the stack is decided (the mutation tool for all):
 
 - Mutation tool, and its scope (changed files only, to keep it fast). Until one is chosen, say "mutation testing not run: no tool chosen" in the PR body.
 - What counts as an acceptable surviving mutant.
