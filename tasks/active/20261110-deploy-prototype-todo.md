@@ -13,7 +13,7 @@ This file is the part both sessions share: the situation, the rules, the seam be
 - **What 현식 owns**: everything from "the platform server receives the deploy input JSON from W3" to "W7 done", plus the AI agent. That is: deploy input validation, slot choice, the GoCD pipeline (Build → Prepare → Render → Apply → Verify → Switch), collecting results, W7, the problem ticket, the AI agent that fixes a failed deploy, and the resolution that restarts the workflow. W0~W3, the FE screens and the cluster itself belong to teammates.
 - **Design source of truth**: `docs/design/deploy-workflow.md`, `docs/design/deploy-handoff.md`, `docs/adr/009-*.md`, `docs/adr/011-*.md`, `docs/design/cluster.md` §6 · §8. These come from the fork branch `docs/deploy-handoff-blue-green` (tip `ed8d702`), which is in review as a fork PR into the team repo. **We build as if it were merged.** Changes from review are expected to be small.
 - **Deadline**: first prototype by **2026-11-12 07:00 KST**. Plan written 2026-11-10 12:30 KST, so about 42 hours. Hackathon freeze is 2026-11-15 18:00 KST.
-- **How we work**: two Claude Code sessions run in parallel without breaks. 현식 reviews, approves and suggests continuously. Sessions do not wait for him (§3 rule 1).
+- **How we work**: two Claude Code sessions run in parallel without breaks. 현식 reviews, approves and suggests continuously. Inside a feature a session does not stop for questions that have a default (§3 rule 1); **between features it waits for his approval** (§3 rule 5).
 - **What "prototype" means here** (§7 is the checkable form): the whole path exists as tested code and config, runs end to end against a local stand-in, and can be plugged into the real EC2 · GoCD · leader with a runbook. Real infra may not be ready in time (cluster build stages 08 · 09 · 09′ · 10 are still open, see `tasks/active/20261106-k3s-cluster-build-todo.md`), so nothing in the prototype may *depend* on it to be testable.
 
 ## 2. Split
@@ -28,16 +28,16 @@ Shared files (both may touch, **own lines only, smallest diff**): `BE/src/app.mo
 
 ## 3. Rules for both sessions
 
-1. **Do not stop to ask when a default exists.** Every open point in this plan has a default (§6, and `Open questions` in your todo). Take the default, write the question in your lessons Log under `Open questions for 현식`, continue. 현식 answers when he reviews. Stop and ask only for: a change to the contract in §4, a secret you need, something destructive or irreversible, or a hard constraint in `CLAUDE.md` §1 you cannot satisfy.
+1. **Inside a feature, do not stop to ask when a default exists.** Every open point in this plan has a default (§6, and `Open questions` in your todo). Take the default, write the question in your lessons Log under `Open questions for 현식`, continue. 현식 answers when he reviews the feature. Stop and ask only for: a change to the contract in §4, a secret you need, something destructive or irreversible, or a hard constraint in `CLAUDE.md` §1 you cannot satisfy.
 2. **Repo rules win.** Read `CLAUDE.md` and `CONTRIBUTING.md` (the commit hook checks you opened it) and `docs/conventions.md` before the first commit. Code and tests land in the same commit. `pnpm verify` (BE) and the AI check command pass on every commit.
 3. **No faked results** (`CLAUDE.md` §1.2, conventions F-1). A stand-in that the running app can return is a `MOCK(<id>)` with an `ai-scope.md` row in the same commit. Fakes that live only in tests need no marker. Never report a check you did not run as passed; say "not run" and why.
 4. **No secrets in git or chat.** Keys come from the session environment. If you need one, say which host and why, then carry on with the parts that do not need it.
 5. **One feature = one branch = one PR into the integration branch.** Never commit to the integration branch directly. For each todo slice:
-   1. `git fetch origin dev/deploy-prototype` and cut `feat/<slug>` (the name is in your todo) from `origin/dev/deploy-prototype`. If your previous feature PR is not merged yet and the new slice needs its code, cut from that feature branch instead and say so in the PR body.
+   1. `git fetch origin dev/deploy-prototype` and cut `feat/<slug>` (the name is in your todo) from `origin/dev/deploy-prototype`.
    2. Build it with its tests, update your task pair in the same branch, `git push -u origin feat/<slug>`.
    3. Open a PR **inside the fork** (`suda5936/WOOWANGTHON_TEAM_18`, base `dev/deploy-prototype`, head `feat/<slug>`) with the repo PR template, in Korean. 현식 has authorized these fork PRs; never open one against the team repo.
-   4. Post a short Korean status (done, test output, open questions, PR link, next) and start the next slice in the same turn. Do not wait for the merge.
-   5. 현식 merges with a merge commit (not squash, so stacked branches stay clean). When a review asks for changes, fix them on that feature branch first, then return to the current slice. If the integration branch moved under an open PR, merge it into the feature branch and re-run the checks.
+   4. Post a short Korean status (done, test output, open questions, PR link, what the next feature is) and **stop. Do not start the next feature until 현식 approves.**
+   5. If he asks for changes, fix them on the same feature branch and report again. When he approves (he merges the PR), go to step 1 for the next feature.
 6. **Docs move with code.** API shape → `docs/design/api.md` first. A model, external API, library or tool added → `docs/ai-scope.md` in the same commit. A design detail that turned out different → fix the design doc you own, or log it for the other owner.
 7. **Language**: reply to 현식 in Korean. Code, comments' identifiers, task files in English; design docs, ADRs, `ai-scope.md`, PR text in Korean. Follow the comment style already in `BE/src` (Korean "why" comments).
 8. **PRs go to the fork only.** The sessions cannot reach the team repo; 현식 opens the PRs into the team repo himself. In every fork PR's notes say "mutation testing not run: no tool chosen" (conventions §6).
@@ -135,7 +135,7 @@ Tool names (fixed): `repo_read`, `logs_read`, `memory_read`, `spec_patch`, `repo
 
 ## 5. Checkpoints (KST)
 
-The checkpoint is the state of the **integration branch**: the features listed must be merged there. Each session gets the other's work simply by cutting its next branch from the integration branch.
+The checkpoint is the state of the **integration branch**: the features listed must be merged there. Each session gets the other's work simply by cutting its next branch from the integration branch. The times assume 현식 approves each feature soon after it is reported; a feature waiting for approval is the main way this schedule slips.
 
 | | When | Session A | Session B |
 | --- | --- | --- | --- |
@@ -180,7 +180,7 @@ Out of the prototype: operating-time monitoring and the incident job, the local 
 | What | Needed by | For |
 | --- | --- | --- |
 | Veto or accept §6 defaults; give the OpenAI model name | S0 | B |
-| Review and merge the fork PRs quickly (they are the hand-over between the sessions) | all the time | both |
+| Approve and merge each feature's fork PR; a session does nothing while its feature waits | all the time | both |
 | `OPENAI_API_KEY` in Session B's environment (environment secret, never in chat) | S1 | B: real model calls, failure-injection numbers |
 | Bot GitHub account + token; public GHCR package `student-apps` | S2 | A: image push from CodeBuild; B: fork · fix PR |
 | EC2 with GoCD server + AWS agent, CodeBuild project + its IAM key, Supabase secret key and running `BE/db/*.sql` | S2~S3 | real-infra dry run |
@@ -201,7 +201,7 @@ Start two new sessions on the fork `suda5936/WOOWANGTHON_TEAM_18` and paste one 
 
 1. git fetch origin dev/deploy-prototype && git checkout dev/deploy-prototype 로 통합 브랜치를 받는다.
 2. CLAUDE.md, CONTRIBUTING.md, tasks/active/20261110-deploy-prototype-todo.md(공유 계획), tasks/active/20261110-deploy-pipeline-todo.md(네 할 일)를 Read 도구로 끝까지 읽는다.
-3. 네 todo의 순서대로 바로 시작한다. 공유 계획 §3 규칙 5의 순서(브랜치 → 구현 · 테스트 → push → 포크 PR → 한국어 보고 → 다음 기능)를 기능마다 반복한다. 머지를 기다리지 말고, 기본값이 있는 질문으로 멈추지 말고 lessons 파일에 적고 계속한다.
+3. 네 todo의 순서대로 바로 시작한다. 공유 계획 §3 규칙 5의 순서(브랜치 → 구현 · 테스트 → push → 포크 PR → 한국어 보고 → 내 승인 → 다음 기능)를 기능마다 반복한다. 기능 하나를 개발하는 중에는 기본값이 있는 질문으로 멈추지 말고 lessons 파일에 적고 계속한다. 기능 하나가 끝나면 보고하고 멈추며, 내가 승인하면 다음 기능으로 넘어간다.
 ```
 
 **Session B**
@@ -213,5 +213,5 @@ Start two new sessions on the fork `suda5936/WOOWANGTHON_TEAM_18` and paste one 
 
 1. git fetch origin dev/deploy-prototype && git checkout dev/deploy-prototype 로 통합 브랜치를 받는다.
 2. CLAUDE.md, CONTRIBUTING.md, tasks/active/20261110-deploy-prototype-todo.md(공유 계획), tasks/active/20261110-ai-agent-todo.md(네 할 일)를 Read 도구로 끝까지 읽는다.
-3. 네 todo의 순서대로 바로 시작한다. 공유 계획 §3 규칙 5의 순서(브랜치 → 구현 · 테스트 → push → 포크 PR → 한국어 보고 → 다음 기능)를 기능마다 반복한다. 머지를 기다리지 말고, 기본값이 있는 질문으로 멈추지 말고 lessons 파일에 적고 계속한다.
+3. 네 todo의 순서대로 바로 시작한다. 공유 계획 §3 규칙 5의 순서(브랜치 → 구현 · 테스트 → push → 포크 PR → 한국어 보고 → 내 승인 → 다음 기능)를 기능마다 반복한다. 기능 하나를 개발하는 중에는 기본값이 있는 질문으로 멈추지 말고 lessons 파일에 적고 계속한다. 기능 하나가 끝나면 보고하고 멈추며, 내가 승인하면 다음 기능으로 넘어간다.
 ```
