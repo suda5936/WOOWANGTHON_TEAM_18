@@ -109,7 +109,9 @@ EC2 ── gocd-server (GoCD 26.1.0, JVM -Xmx1g, 8153은 Tailscale 주소에만 
 ## 알려진 한계
 
 - BE는 컨테이너 하나다. 배포하는 몇 초 동안 API가 응답하지 않는다.
-- 스크립트는 실제 AWS에서 아직 돌려 보지 않았다(2026-11-11). `start-gocd.sh`와 AWS 실행기도 EC2에서는 돌려 보지 않았다(로컬 docker에서 서버 기동 · 로그인 · 설정 저장소 등록 · 접근 토큰 발급까지만 확인했다).
+- 스크립트는 실제 AWS에서 아직 돌려 보지 않았다(2026-11-11). `start-gocd.sh`와 AWS 실행기도 EC2에서는 돌려 보지 않았다(로컬 docker에서 서버 기동 · 로그인 · 설정 저장소 등록 · 접근 토큰 발급까지만 확인했다). `student-trial`도 같은 로컬 GoCD 26.1.0에서 `student-deploy`와 함께 읽히고 `be` 토큰의 실행 요청이 202인 것까지 확인했다(2026-11-12). 시험 인스턴스가 실제로 job을 배정받는 것(건너뛴 Render의 빈 `out/` artifact 포함)은 로컬 서버가 GitHub material에 닿지 못해 보지 못했다.
+- `student-deploy`와 `student-trial`은 설정 저장소 하나(`Infra/gocd/*.gocd.yaml`)라, 한 파일이라도 파싱에 실패하면 GoCD는 저장소 전체를 실패로 둔다. 로컬 GoCD 26.1.0에서 `student-trial`의 YAML을 일부러 깨뜨리자 새 서버에서 `student-deploy`도 생기지 않았다(`setup.sh`는 `student-deploy`에서 멈춘다). 그래서 이 YAML을 고칠 때는 PR CI(`Infra/pipeline/src/gocd-trial.spec.ts`)와 로컬 GoCD 파싱을 함께 본다. `setup.sh`가 `student-trial`이 없을 때 경고만 하는 것은 권한 · 그룹처럼 파싱이 아닌 이유로 안 보일 때를 위한 것이다.
+- `student-trial`은 범위 밖 스테이지도 job을 하나씩 돌린다(아무것도 하지 않고 통과한다). 그 job도 리더 실행기를 잡으므로, 시험 하나가 학생 배포의 리더 job과 실행기를 두고 줄을 선다(실행기가 하나면 시험의 빈 job이 끝날 때까지 배포가 기다린다).
 - GoCD 서버와 AWS 실행기가 죽으면 새 배포가 시작되지 않는다(BE가 `503 PIPELINE_UNAVAILABLE`). (`setup`이나 artifact 받기가 실패한 job은 `job.sh`가 `STAGE_NO_REPORT`를 curl로 알린다.) 실행 중이던 job이 GoCD의 시간 제한이나 실행기가 죽어서 끝나면 알림을 보내는 task가 돌지 못해 그 배포는 `running`으로 남는다. 같은 프로젝트의 다음 시작이 그 기록을 시간 초과(`TIMED_OUT`)로 마감하지만(BE의 `STALE_RUN_MS`, 1시간), 그 전까지 학생에게는 진행 중으로 보인다.
 - BE 컨테이너가 Tailscale 주소의 8153에 닿는지(`GOCD_URL`)는 EC2에서 확인하지 않았다.
 - 보안 검사의 Trivy DB는 배포할 때만 새로 받는다. BE를 오래 다시 배포하지 않으면 새로 알려진 취약점이 늦게 잡힌다. 배포 중 DB를 받는 동안 이전 컨테이너가 검사를 돌리면 그 검사는 실패할 수 있다(`SCAN_FAILED`, 다음 저장 때 다시 검사).
