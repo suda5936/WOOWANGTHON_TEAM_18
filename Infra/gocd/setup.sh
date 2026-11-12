@@ -5,7 +5,8 @@
 # It
 #   1. turns on login (file-based, two users: `admin` and `be`), so the API is no longer open,
 #   2. makes `admin` the only system administrator and gives `be` the operate right on the pipeline group `wcp` and nothing else,
-#   3. registers this repo as the config repo (Infra/gocd/*.gocd.yaml defines student-deploy and student-trial),
+#   3. registers this repo as the config repo (Infra/gocd/*.gocd.yaml defines student-deploy and student-trial; a missing
+#      student-trial only warns, so the trial pipeline cannot block the deploy setup),
 #   4. creates the access token the platform server uses (BE env GOCD_TOKEN) as the user `be`, once,
 #   5. writes what the agents need.
 # The platform server's token must not be an administrator's: with the config repo's rights it could register a repo whose
@@ -131,14 +132,17 @@ else
 fi
 
 # The pipelines appear when GoCD has read the YAML (the same config repo holds both: Infra/gocd/*.gocd.yaml).
-for name in "$pipeline" student-trial; do
-  found=
+# student-deploy is required. student-trial (the AI agent's trial runs) only warns: a problem there must not stop the deploy setup.
+appeared() {
+  local _
   for _ in $(seq 60); do
-    [[ $(api GET "/go/api/admin/pipelines/$name" 'v11') == 200 ]] && { found=1; break; }
+    [[ $(api GET "/go/api/admin/pipelines/$1" 'v11') == 200 ]] && return 0
     sleep 2
   done
-  [[ -n $found ]] || { echo "the pipeline $name did not appear: look at the config repo's last parse in the GoCD UI (Admin > Config Repositories)" >&2; exit 1; }
-done
+  return 1
+}
+appeared "$pipeline" || { echo "the pipeline $pipeline did not appear: look at the config repo's last parse in the GoCD UI (Admin > Config Repositories)" >&2; exit 1; }
+appeared student-trial || echo "warning: the pipeline student-trial did not appear (the AI agent's trial tools will fail): look at the config repo's last parse in the GoCD UI (Admin > Config Repositories); going on" >&2
 
 # 4. The access token for the platform server (as the user `be`), once: GoCD shows it only at creation.
 # A token file kept from an earlier server (its data volume made again) is not known here: check it, and make a new one if not.
